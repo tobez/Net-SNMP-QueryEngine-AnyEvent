@@ -11,3 +11,4 @@ cover_db
 pod2htm*.tmp
 Net-SNMP-QueryEngine-AnyEvent-*
 .git
+.gitignore
