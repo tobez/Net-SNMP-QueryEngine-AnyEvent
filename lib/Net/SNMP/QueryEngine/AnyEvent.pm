@@ -192,6 +192,10 @@ the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-SNMP-Q
 automatically be notified of progress on your bug as I make changes.
 
 
+=head1 SEE ALSO
+
+The snmp-query-engine daemon can be found on github
+at L<https://github.com/tobez/snmp-query-engine>.
 
 
 =head1 SUPPORT
@@ -226,6 +230,7 @@ L<http://search.cpan.org/dist/Net-SNMP-QueryEngine-AnyEvent/>
 
 =head1 ACKNOWLEDGEMENTS
 
+This work is in part sponsored by Telia Denmark.
 
 =head1 LICENSE AND COPYRIGHT
 
