@@ -1,5 +1,8 @@
 Revision history for Net-SNMP-QueryEngine-AnyEvent
 
+0.02  Wed Jun 27 11:46:42 CEST 2012
+	Fix dependencies and tests.
+
 0.01  Tue Jun 26 16:30:50 CEST 2012
-        Initial release.
+	Initial release.
 
