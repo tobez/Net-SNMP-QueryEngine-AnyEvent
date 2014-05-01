@@ -4,16 +4,17 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use AnyEvent::Handle;
 use base 'AnyEvent::Handle';
 use Data::MessagePack;
 
-use constant RT_SETOPT   => 1;
-use constant RT_INFO     => 3;
-use constant RT_GET      => 4;
-use constant RT_GETTABLE => 5;
+use constant RT_SETOPT    => 1;
+use constant RT_INFO      => 3;
+use constant RT_GET       => 4;
+use constant RT_GETTABLE  => 5;
+use constant RT_DEST_INFO => 6;
 use constant RT_REPLY    => 0x10;
 use constant RT_ERROR    => 0x20;
 
@@ -107,6 +108,12 @@ sub info
 	$self->cmd($cb, RT_INFO, ++$self->{sqe}{cid});
 }
 
+sub dest_info
+{
+	my ($self, $cb, $host, $port) = @_;
+	$self->cmd($cb, RT_DEST_INFO, ++$self->{sqe}{cid}, $host, $port);
+}
+
 =head1 NAME
 
 Net::SNMP::QueryEngine::AnyEvent - multiplexing SNMP query engine client using AnyEvent
@@ -181,6 +188,10 @@ Performs gettable request.
 
 Performs info request.
 
+=head2 dest_info
+
+Performs dest_info request.
+
 =head1 AUTHOR
 
 Anton Berezin, C<< <tobez at tobez.org> >>
@@ -234,7 +245,7 @@ This work is in part sponsored by Telia Denmark.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2012, Anton Berezin "<tobez@tobez.org>". All rights
+Copyright (c) 2012-2014, Anton Berezin "<tobez@tobez.org>". All rights
 reserved.
 
 Redistribution and use in source and binary forms, with or without
