@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use AnyEvent::Handle;
 use base 'AnyEvent::Handle';
@@ -120,7 +120,7 @@ Net::SNMP::QueryEngine::AnyEvent - multiplexing SNMP query engine client using A
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 SYNOPSIS
 
