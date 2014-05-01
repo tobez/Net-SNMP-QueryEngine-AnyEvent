@@ -120,7 +120,7 @@ Net::SNMP::QueryEngine::AnyEvent - multiplexing SNMP query engine client using A
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =head1 SYNOPSIS
 

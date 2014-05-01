@@ -5,7 +5,10 @@ all_from 'lib/Net/SNMP/QueryEngine/AnyEvent.pm';
 author   q{Anton Berezin <tobez@tobez.org>};
 license  'bsd';
 
-build_requires 'Test::More';
+requires 'AnyEvent';
+requires 'AnyEvent::Handle';
+requires 'Data::MessagePack';
+test_requires 'Test::More';
 
 auto_install;
 
