@@ -8,6 +8,7 @@ license  'bsd';
 requires 'AnyEvent';
 requires 'AnyEvent::Handle';
 requires 'Data::MessagePack';
+requires 'Data::MessagePack::Stream';
 test_requires 'Test::More';
 
 auto_install;

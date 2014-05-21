@@ -4,11 +4,12 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use AnyEvent::Handle;
 use base 'AnyEvent::Handle';
 use Data::MessagePack;
+use Data::MessagePack::Stream;
 
 use constant RT_SETOPT    => 1;
 use constant RT_INFO      => 3;
@@ -28,8 +29,7 @@ sub new
 	$self->{sqe}{condvar} = AnyEvent->condvar;
 	$self->{sqe}{pending} = 0;
 	$self->{sqe}{mp} = Data::MessagePack->new->prefer_integer;
-	$self->{sqe}{up} = Data::MessagePack::Unpacker->new;
-	$self->{sqe}{nup} = 0;
+	$self->{sqe}{up} = Data::MessagePack::Stream->new;
 	$self->{sqe}{cid} = int rand 1000000;
 	$self->{sqe}{cb} = {};
 	return $self;
@@ -57,12 +57,13 @@ sub cmd
 sub read_handler
 {
 	my $self = shift;
-	my $cl = length($self->{rbuf});
-	$self->{sqe}{nup} += $cl;
-again:
-	my $o = $self->{sqe}{up}->execute($self->{rbuf}, 0);
-	if ($o) {
+
+	$self->{sqe}{up}->feed($self->{rbuf});
+	$self->{rbuf} = "";
+
+	while ($self->{sqe}{up}->next) {
 		my $data = $self->{sqe}{up}->data;
+
 		if (ref($data) ne "ARRAY" || @$data < 3 || !$self->{sqe}{cb}{$data->[1]}) {
 		} else {
 			$self->{sqe}{cb}{$data->[1]}->($self, $data->[0] & RT_REPLY, $data->[2]);
@@ -72,12 +73,7 @@ again:
 				$self->{sqe}{condvar}->send;
 			}
 		}
-		substr($self->{rbuf}, 0, $o - ($self->{sqe}{nup}-$cl), "");
-		$self->{sqe}{up}->reset;
-		$cl = $self->{sqe}{nup} = length($self->{rbuf});
-		goto again if $cl;
 	}
-	$self->{rbuf} = "";
 }
 
 sub setopt
@@ -120,7 +116,7 @@ Net::SNMP::QueryEngine::AnyEvent - multiplexing SNMP query engine client using A
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 SYNOPSIS
 
