@@ -77,8 +77,8 @@ sub read_handler
 			$self->{sqe}{cb}{$cid}->($self, $data->[0] & RT_REPLY, $data->[2]);
 			delete $self->{sqe}{cb}{$cid};
 
-			my $hp = $self->{sqe}{cid2hp}{$cid};
-			if ($self->{sqe}{hp}{$hp}) {
+			my $hp = delete $self->{sqe}{cid2hp}{$cid};
+			if ($hp && $self->{sqe}{hp}{$hp}) {
 				$self->{sqe}{hp}{$hp}--;
 				if ($self->{sqe}{hp}{$hp} <= 0) {
 					$self->{sqe}{hpcb}{$hp}->($self) if $self->{sqe}{hpcb}{$hp};
