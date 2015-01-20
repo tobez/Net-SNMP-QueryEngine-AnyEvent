@@ -1,5 +1,8 @@
 Revision history for Net-SNMP-QueryEngine-AnyEvent
 
+0.05  Tue Jan 20 14:07:53 CET 2015
+	Implement $sqe->when_done($host, $port, $callback);
+
 0.04  Wed May 21 15:07:31 CEST 2014
     Use Data::MessagePack::Stream
 

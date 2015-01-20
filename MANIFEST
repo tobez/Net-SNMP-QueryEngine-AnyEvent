@@ -20,4 +20,6 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 META.yml
+MYMETA.json
+MYMETA.yml
 t/boilerplate.t

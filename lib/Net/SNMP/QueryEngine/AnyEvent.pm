@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use AnyEvent::Handle;
 use base 'AnyEvent::Handle';
@@ -33,6 +33,13 @@ sub new
 	$self->{sqe}{cid} = int rand 1000000;
 	$self->{sqe}{cb} = {};
 	return $self;
+}
+
+sub when_done
+{
+	my ($self, $host, $port, $cb) = @_;
+	my $hp = "$host:$port";
+	$self->{sqe}{hpcb}{$hp} = $cb;
 }
 
 sub wait
@@ -66,8 +73,18 @@ sub read_handler
 
 		if (ref($data) ne "ARRAY" || @$data < 3 || !$self->{sqe}{cb}{$data->[1]}) {
 		} else {
-			$self->{sqe}{cb}{$data->[1]}->($self, $data->[0] & RT_REPLY, $data->[2]);
-			delete $self->{sqe}{cb}{$data->[1]};
+			my $cid = $data->[1];
+			$self->{sqe}{cb}{$cid}->($self, $data->[0] & RT_REPLY, $data->[2]);
+			delete $self->{sqe}{cb}{$cid};
+
+			my $hp = $self->{sqe}{cid2hp}{$cid};
+			if ($self->{sqe}{hp}{$hp}) {
+				$self->{sqe}{hp}{$hp}--;
+				if ($self->{sqe}{hp}{$hp} <= 0) {
+					$self->{sqe}{hpcb}{$hp}->($self) if $self->{sqe}{hpcb}{$hp};
+				}
+			}
+
 			$self->{sqe}{pending}--;
 			if ($self->{sqe}{pending} <= 0) {
 				$self->{sqe}{condvar}->send;
@@ -85,16 +102,28 @@ sub setopt
 sub get
 {
 	my ($self, $host, $port, $oids, $cb) = @_;
-	$self->cmd($cb, RT_GET, ++$self->{sqe}{cid}, $host, $port, $oids);
+
+	my $cid = ++$self->{sqe}{cid};
+	my $hp = "$host:$port";
+	$self->{sqe}{hp}{$hp}++;
+	$self->{sqe}{cid2hp}{$cid} = $hp;
+
+	$self->cmd($cb, RT_GET, $cid, $host, $port, $oids);
 }
 
 sub gettable
 {
 	my ($self, $host, $port, $oid, $max_rep, $cb) = @_;
+
+	my $cid = ++$self->{sqe}{cid};
+	my $hp = "$host:$port";
+	$self->{sqe}{hp}{$hp}++;
+	$self->{sqe}{cid2hp}{$cid} = $hp;
+
 	if ($cb) {
-		$self->cmd($cb, RT_GETTABLE, ++$self->{sqe}{cid}, $host, $port, $oid, $max_rep);
+		$self->cmd($cb, RT_GETTABLE, $cid, $host, $port, $oid, $max_rep);
 	} else {
-		$self->cmd($max_rep, RT_GETTABLE, ++$self->{sqe}{cid}, $host, $port, $oid);
+		$self->cmd($max_rep, RT_GETTABLE, $cid, $host, $port, $oid);
 	}
 }
 
@@ -116,7 +145,7 @@ Net::SNMP::QueryEngine::AnyEvent - multiplexing SNMP query engine client using A
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =head1 SYNOPSIS
 
@@ -128,6 +157,7 @@ a multiplexing SNMP query engine.
     my $sqe = Net::SNMP::QueryEngine::AnyEvent->new;
 
     $sqe->setopt("127.0.0.1", 161, { community => "meow" }, sub {});
+	$sqe->when_done("127.0.0.1", 161, sub { print "done with localhost\n" });
 
     $sqe->gettable("127.0.0.1", 161, "1.3.6.1.2.1.1", sub {
       my ($h, $ok, $r) = @_;
@@ -157,6 +187,11 @@ but always overrides "on_read" callback.
 By default, connects to snmp-query-engine listening on
 localhost, port 7667.  Override this by specifying
 a "connect" argument.
+
+=head2 when_done
+
+Execute provided callback when there are no unfinished
+get or gettable queries towards a specified host:port.
 
 =head2 wait
 
@@ -241,7 +276,7 @@ This work is in part sponsored by Telia Denmark.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2012-2014, Anton Berezin "<tobez@tobez.org>". All rights
+Copyright (c) 2012-2015, Anton Berezin "<tobez@tobez.org>". All rights
 reserved.
 
 Redistribution and use in source and binary forms, with or without
